@@ -1,14 +1,22 @@
+
 package com.example.statsservice.controller;
 
 import com.example.statsservice.domaine.PlayerStats;
 import com.example.statsservice.domaine.TeamStats;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+//import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +24,8 @@ import java.util.Map;
 @Api(value = "stats", description = "REST Apis related to stats Entity!!!!")
 @RestController
 public class statsController {
+    @Autowired
+    RestTemplate restTemplate;
 
     public static final Map<String, TeamStats> teamStatsDB = new HashMap<>();
     public static final Map<String, PlayerStats> playerStatsDB = new HashMap<>();
@@ -40,15 +50,19 @@ public class statsController {
             @ApiResponse(code = 401, message = "not authorized!"),
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
-    @RequestMapping(value = "/teamStats/{teamId}", method = RequestMethod.GET)
-    public ResponseEntity<TeamStats> getTeamStats(@PathVariable String teamId) {
-        TeamStats teamStats = teamStatsDB.get(teamId);
 
-        if (teamStats != null) {
-            return ResponseEntity.ok(teamStats);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    //@HystrixCommand(fallbackMethod = "callStatServiceAndGetData_Fallback")
+    @RequestMapping(value = "/teamStats/{teamId}", method = RequestMethod.GET)
+
+    public ResponseEntity<String> getTeamStats(@PathVariable String teamId) {
+        String response = this.restTemplate
+                .exchange("http://localhost:8083/teams/{teamId}"
+                        , HttpMethod.GET
+                        , null
+                        , new ParameterizedTypeReference<String>() {
+                        }, teamId).getBody();
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/playerStats/{playerId}")
@@ -60,6 +74,17 @@ public class statsController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
+
+    @SuppressWarnings("unused")
+    private String callStatServiceAndGetData_Fallback(String teamId) {
+        System.out.println("Student Service is down!!! fallback route enabled...");
+        return "CIRCUIT BREAKER ENABLED!!!No Response From Student Service at this moment. Service will be back shortly - ";
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
 

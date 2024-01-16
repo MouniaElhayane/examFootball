@@ -6,19 +6,16 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
-import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
 
 import java.util.*;
 
-@EnableHystrixDashboard
-@EnableCircuitBreaker
+
+
 @Api(value = "team", description = "REST Apis related to team Entity!!!!")
 @RestController
 public class teamController {
@@ -61,7 +58,7 @@ public class teamController {
     }
 
 
-    @HystrixCommand(fallbackMethod = "fallbackGetAllMatches")
+
     @ApiOperation(value = "Get team by id ", response = Iterable.class, tags = "getteambyid")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Suceess|OK"),
@@ -70,7 +67,7 @@ public class teamController {
             @ApiResponse(code = 404, message = "not found!!!") })
 
     // Endpoint pour récupérer les détails d'une équipe par son identifiant
-    @RequestMapping(value = "/teams/{id}", method = RequestMethod.GET)
+    @GetMapping(value = "/teams/{id}")
     public team getTeamDetails(@PathVariable Integer id) {
         for (Map.Entry<String, List<team>> entry : teamDB.entrySet()) {
             // Parcourir les équipes dans chaque région
@@ -156,6 +153,7 @@ public class teamController {
         // Renvoyer une réponse 404 si aucune équipe avec l'ID spécifié n'est trouvée
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Team not found");
     }
+
 
 
 }

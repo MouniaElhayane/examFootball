@@ -4,6 +4,7 @@ package com.example.statsservice.controller;
 import com.example.statsservice.domaine.PlayerStats;
 import com.example.statsservice.domaine.TeamStats;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -12,11 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-//import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +43,8 @@ public class statsController {
     }
 
 
-
+    //@HystrixCommand(fallbackMethod = "callStatServiceAndGetData_Fallback")
+    // en ajoutant Hystrix le mapping marche plus
     @ApiOperation(value = "Get stats by id ", response = Iterable.class, tags = "statteambyid")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Suceess|OK"),
@@ -51,7 +52,6 @@ public class statsController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
 
-    //@HystrixCommand(fallbackMethod = "callStatServiceAndGetData_Fallback")
     @RequestMapping(value = "/teamStats/{teamId}", method = RequestMethod.GET)
 
     public ResponseEntity<String> getTeamStats(@PathVariable String teamId) {
@@ -65,6 +65,8 @@ public class statsController {
         return ResponseEntity.ok(response);
     }
 
+   // @HystrixCommand(fallbackMethod = "callStatServiceAndGetData_Fallback")
+    // en ajoutant Hystrix le mapping marche plus
     @GetMapping("/playerStats/{playerId}")
     public ResponseEntity<String> getPlayerStats(@PathVariable String playerId) {
         String response = this.restTemplate
@@ -77,7 +79,7 @@ public class statsController {
         return ResponseEntity.ok(response);
     }
 
-    @SuppressWarnings("unused")
+
     private String callStatServiceAndGetData_Fallback(String teamId) {
         System.out.println("Student Service is down!!! fallback route enabled...");
         return "CIRCUIT BREAKER ENABLED!!!No Response From Student Service at this moment. Service will be back shortly - ";

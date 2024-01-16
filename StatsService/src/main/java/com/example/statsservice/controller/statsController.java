@@ -66,14 +66,15 @@ public class statsController {
     }
 
     @GetMapping("/playerStats/{playerId}")
-    public ResponseEntity<PlayerStats> getPlayerStats(@PathVariable String playerId) {
-        PlayerStats playerStats = playerStatsDB.get(playerId);
+    public ResponseEntity<String> getPlayerStats(@PathVariable String playerId) {
+        String response = this.restTemplate
+                .exchange("http://localhost:8081/Players/{playerId}"
+                        , HttpMethod.GET
+                        , null
+                        , new ParameterizedTypeReference<String>() {
+                        }, playerId).getBody();
 
-        if (playerStats != null) {
-            return ResponseEntity.ok(playerStats);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(response);
     }
 
     @SuppressWarnings("unused")
